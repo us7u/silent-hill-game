@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SILENT HILL: Fog Town</title>
+    <!-- Tailwind CSS للتنسيق -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- مكتبات React و Babel لتشغيل الكود مباشرة -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons للأيقونات -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-black text-white font-sans antialiased select-none">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function SilentHillGame() {
+            const [gameState, setGameState] = useState('intro');
+            const [health, setHealth] = useState(100);
+            const [sanity, setSanity] = useState(100);
+            const [radioStatic, setRadioStatic] = useState(false);
+            const [inventory, setInventory] = useState([]);
+            const [logs, setLogs] = useState([]);
+
+            const addLog = (text) => {
+                setLogs((prev) => [text, ...prev.slice(0, 4)]);
+            };
+
+            const handleChoice = (action) => {
+                if (action === 'explore_street') {
+                    addLog('مشيت في الضباب... الراديو يصدر تشويشاً مفاجئاً!');
+                    setRadioStatic(true);
+                    setSanity((prev) => Math.max(0, prev - 15));
+                } else if (action === 'use_radio') {
+                    addLog('حاولت ضبط الراديو، سمعت صوتاً غريباً ينادي باسمك.');
+                    setSanity((prev) => Math.max(0, prev - 10));
+                } else if (action === 'take_pipe') {
+                    if (!inventory.includes('أنبوب حديدي')) {
+                        setInventory((prev) => [...prev, 'أنبوب حديدي']);
+                        addLog('التقطت أنبوباً حديدياً صدئاً من الأرض.');
+                    } else {
+                        addLog('الأنبوب الحديدي موجود معك بالفعل.');
+                    }
+                } else if (action === 'run') {
+                    addLog('ركضت بسرعة مبتعداً عن الصوت في الضباب.');
+                    setRadioStatic(false);
+                }
+            };
+
+            const resetGame = () => {
+                setGameState('playing');
+                setHealth(100);
+                setSanity(100);
+                setRadioStatic(false);
+                setInventory([]);
+                setLogs(['استيقظت في الشارع. الضباب يغطي كل شيء.']);
+            };
+
+            return (
+                <div className="min-h-screen bg-neutral-950 text-neutral-200 p-4 font-mono flex flex-col items-center justify-center">
+                    <div className="max-w-md w-full border border-neutral-800 bg-neutral-900/90 p-6 rounded-lg shadow-2xl backdrop-blur">
+                        
+                        {/* Header */}
+                        <div className="flex justify-between items-center border-b border-neutral-800 pb-4 mb-4">
+                            <h1 className="text-xl font-bold tracking-widest text-red-700 uppercase">
+                                Silent Hill: Fog Town
+                            </h1>
+                            <span className="text-xs text-neutral-500">v1.0</span>
+                        </div>
+
+                        {gameState === 'intro' ? (
+                            <div className="text-center py-8 space-y-6">
+                                <p className="text-neutral-400 text-sm leading-relaxed">
+                                    "في أحلامك المضطربة، ترى تلك المدينة... سايلنت هيل."
+                                </p>
+                                <button
+                                    onClick={resetGame}
+                                    className="w-full py-3 bg-red-950 hover:bg-red-900 text-red-200 border border-red-800 rounded transition font-bold tracking-wider"
+                                >
+                                    دخول الضباب
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {/* Status Bar */}
+                                <div className="grid grid-cols-3 gap-2 bg-neutral-950 p-3 rounded border border-neutral-800 text-xs text-center">
+                                    <div className="text-red-500">
+                                        ❤️ الصحة: {health}%
+                                    </div>
+                                    <div className="text-purple-400">
+                                        👁️ الإدراك: {sanity}%
+                                    </div>
+                                    <div className={radioStatic ? 'text-amber-500 animate-pulse font-bold' : 'text-neutral-600'}>
+                                        📻 {radioStatic ? 'تشويش!' : 'هادئ'}
+                                    </div>
+                                </div>
+
+                                {/* Game Display Log */}
+                                <div className="h-40 bg-neutral-950 border border-neutral-800 rounded p-3 flex flex-col justify-end space-y-2 overflow-hidden">
+                                    {logs.map((log, idx) => (
+                                        <p key={idx} className={`text-xs ${idx === 0 ? 'text-neutral-100 font-semibold' : 'text-neutral-600'}`}>
+                                            {idx === 0 ? '> ' : ''}{log}
+                                        </p>
+                                    ))}
+                                </div>
+
+                                {/* Inventory */}
+                                <div className="text-xs text-neutral-400 border-t border-b border-neutral-800 py-2">
+                                    <span className="text-neutral-500">المعدات: </span>
+                                    {inventory.length > 0 ? inventory.join(', ') : 'لا يوجد شيء'}
+                                </div>
+
+                                {/* Actions */}
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <button
+                                        onClick={() => handleChoice('explore_street')}
+                                        className="p-3 bg-neutral-800 hover:bg-neutral-700 rounded border border-neutral-700 transition text-right"
+                                    >
+                                        استكشاف الشارع
+                                    </button>
+                                    <button
+                                        onClick={() => handleChoice('take_pipe')}
+                                        className="p-3 bg-neutral-800 hover:bg-neutral-700 rounded border border-neutral-700 transition text-right"
+                                    >
+                                        التقاط الأنبوب
+                                    </button>
+                                    <button
+                                        onClick={() => handleChoice('use_radio')}
+                                        className="p-3 bg-neutral-800 hover:bg-neutral-700 rounded border border-neutral-700 transition text-right"
+                                    >
+                                        فحص الراديو
+                                    </button>
+                                    <button
+                                        onClick={() => handleChoice('run')}
+                                        className="p-3 bg-neutral-800 hover:bg-neutral-700 rounded border border-neutral-700 transition text-right"
+                                    >
+                                        الهروب
+                                    </button>
+                                </div>
+
+                                {/* Reset */}
+                                <button
+                                    onClick={resetGame}
+                                    className="w-full py-2 text-xs text-neutral-500 hover:text-neutral-300 transition"
+                                >
+                                    🔄 إعادة التشغيل
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<SilentHillGame />);
+    </script>
+</body>
+</html>
